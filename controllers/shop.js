@@ -1,5 +1,6 @@
 const Product = require('../models/product');
 const Cart = require("../models/cart");
+const OrderItem = require("../models/order-item");
 
 exports.getProducts = async (req, res) => {
   try {
@@ -82,10 +83,28 @@ exports.postCartDeleteProduct = async (req, res) => {
   res.redirect('/cart');
 }
 
-exports.getOrders = (req, res) => {
-  res.render('shop/orders', { title: 'Your Orders', path: '/orders' });
+exports.postCreateOrder = async (req, res) => {
+  const cart = await req.user.getCart({
+    include: [{ model: Product }]
+  });
+
+  const order = await req.user.createOrder();
+
+  await order.addProducts(cart.products.map((product) => {
+    product.orderItem = {
+      quantity: product.cartItem.quantity
+    };
+    return product;
+  }));
+
+  await cart.destroy();
+
+  res.redirect('/orders');
 }
 
-exports.getCheckout = (req, res) => {
-  res.render('shop/checkout', { title: 'Checkout', path: '/checkout' });
+exports.getOrders = async (req, res) => {
+  const orders = await req.user.getOrders({
+    include: [{ model: Product }]
+  });
+  res.render('shop/orders', { orders, title: 'Your Orders', path: '/orders' });
 }
