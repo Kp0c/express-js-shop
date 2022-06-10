@@ -1,17 +1,15 @@
 const path = require('path');
 const express = require("express");
 const bodyParser = require("body-parser");
-const sequelize = require("./util/database");
-const Product = require("./models/product");
-const User = require("./models/user");
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 const errorController = require('./controllers/error');
-const Cart = require("./models/cart");
-const CartItem = require("./models/cart-item");
-const Order = require("./models/order");
-const OrderItem = require("./models/order-item");
+
+const { mongoConnect } = require('./util/database');
+const User = require("./models/user");
+
+require('dotenv').config();
 
 const app = express();
 
@@ -21,7 +19,14 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(async (req, res, next) => {
-  req.user = await User.findByPk(1);
+  const user = await User.findById('62a3230758bccf386ada7f54');
+
+  req.user = new User({
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    cart: user.cart
+  });
 
   next();
 })
@@ -31,25 +36,8 @@ app.use(shopRoutes);
 
 app.use(errorController.notFoundController);
 
-Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
-User.hasMany(Product);
+(async () => {
+  await mongoConnect();
 
-User.hasOne(Cart);
-Cart.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
-
-Cart.belongsToMany(Product, { through: CartItem });
-Product.belongsToMany(Cart, { through: CartItem });
-
-Order.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
-User.hasMany(Order);
-
-Order.belongsToMany(Product, { through: OrderItem });
-Product.belongsToMany(Order, { through: OrderItem });
-
-sequelize
-  .sync()
-  .then(() => {
-    app.listen(3000);
-  })
-  .catch((err) => console.error(err));
-
+  app.listen(3000);
+})();
