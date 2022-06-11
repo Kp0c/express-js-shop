@@ -1,7 +1,12 @@
 const Product = require('../models/product');
 
 exports.getAddProduct = (req, res) => {
-  res.render('admin/edit-product', { title: 'Add Product', path: '/admin/add-product', product: null });
+  res.render('admin/edit-product', {
+    title: 'Add Product',
+    path: '/admin/add-product',
+    product: null,
+    isAuthenticated: !!req.session.userId
+  });
 };
 
 exports.postAddProduct = async (req, res) => {
