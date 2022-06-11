@@ -4,7 +4,7 @@ const Product = require('../models/product');
 
 exports.getProducts = async (req, res) => {
   try {
-    const products = await Product.fetchAll();
+    const products = await Product.find();
 
     res.render('shop/product-list', { products, title: 'All Products', path: '/products' });
   } catch(err) {
@@ -26,7 +26,7 @@ exports.getProduct = async (req, res) => {
 
 exports.getIndex = async (req, res) => {
   try {
-    const products = await Product.fetchAll();
+    const products = await Product.find();
 
     res.render('shop/index', { products, title: 'Shop', path: '/' });
   } catch(err) {
@@ -35,7 +35,7 @@ exports.getIndex = async (req, res) => {
 }
 
 exports.getCart = async (req, res) => {
-  const items = await req.user.getCart();
+  const items = await req.user.getCartItems();
 
   res.render('shop/cart', { cartProducts: items, title: 'Your Cart', path: '/cart' });
 }

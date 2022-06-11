@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/mongoose": "^5.11.97",
     "nodemon": "^2.0.15"
   },
   "dependencies": {
@@ -17,6 +18,7 @@
     "dotenv": "^16.0.1",
     "ejs": "^3.1.6",
     "express": "^4.17.2",
-    "mongodb": "^4.7.0"
+    "mongodb": "^4.7.0",
+    "mongoose": "^6.3.6"
   }
 }

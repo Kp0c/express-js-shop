@@ -6,7 +6,8 @@ const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 const errorController = require('./controllers/error');
 
-const { mongoConnect } = require('./util/database');
+const mongoose = require('mongoose');
+
 const User = require("./models/user");
 
 require('dotenv').config();
@@ -19,14 +20,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(async (req, res, next) => {
-  const user = await User.findById('62a3230758bccf386ada7f54');
-
-  req.user = new User({
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    cart: user.cart
-  });
+  req.user = await User.findById('62a45b086591990a7263fa8d');
 
   next();
 })
@@ -37,7 +31,7 @@ app.use(shopRoutes);
 app.use(errorController.notFoundController);
 
 (async () => {
-  await mongoConnect();
+  await mongoose.connect(process.env.MONGODB_URL);
 
   app.listen(3000);
 })();
