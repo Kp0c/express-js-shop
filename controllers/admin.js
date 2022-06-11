@@ -34,7 +34,8 @@ exports.getEditProduct = async (req, res) => {
   res.render('admin/edit-product', {
     title: 'Edit Product',
     path: '/admin/edit-product',
-    product
+    product,
+    isAuthenticated: !!req.session.userId
   });
 };
 
@@ -55,7 +56,12 @@ exports.postEditProduct = async (req, res) => {
 
 exports.getProducts = async (req, res) => {
   const products = await Product.find();
-  res.render('admin/products', { products, title: 'Admin Products', path: '/admin/products' });
+  res.render('admin/products', {
+    products,
+    title: 'Admin Products',
+    path: '/admin/products',
+    isAuthenticated: !!req.session.userId
+  });
 }
 
 exports.postDeleteProduct = async (req, res) => {

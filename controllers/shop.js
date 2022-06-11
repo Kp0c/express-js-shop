@@ -1,12 +1,15 @@
 const Product = require('../models/product');
-// const Cart = require("../models/cart");
-// const OrderItem = require("../models/order-item");
 
 exports.getProducts = async (req, res) => {
   try {
     const products = await Product.find();
 
-    res.render('shop/product-list', { products, title: 'All Products', path: '/products' });
+    res.render('shop/product-list', {
+      products,
+      title: 'All Products',
+      path: '/products',
+      isAuthenticated: !!req.session.userId
+    });
   } catch(err) {
     console.error(err);
   }
@@ -21,14 +24,24 @@ exports.getProduct = async (req, res) => {
     return res.redirect('/');
   }
 
-  res.render('shop/product-detail', { product, title: product.title, path: '/products' });
+  res.render('shop/product-detail', {
+    product,
+    title: product.title,
+    path: '/products',
+    isAuthenticated: !!req.session.userId
+  });
 };
 
 exports.getIndex = async (req, res) => {
   try {
     const products = await Product.find();
 
-    res.render('shop/index', { products, title: 'Shop', path: '/' });
+    res.render('shop/index', {
+      products,
+      title: 'Shop',
+      path: '/',
+      isAuthenticated: !!req.session.userId
+    });
   } catch(err) {
     console.error(err);
   }
@@ -37,7 +50,12 @@ exports.getIndex = async (req, res) => {
 exports.getCart = async (req, res) => {
   const items = await req.user.getCartItems();
 
-  res.render('shop/cart', { cartProducts: items, title: 'Your Cart', path: '/cart' });
+  res.render('shop/cart', {
+    cartProducts: items,
+    title: 'Your Cart',
+    path: '/cart',
+    isAuthenticated: !!req.session.userId
+  });
 }
 
 exports.postCart = async (req, res) => {
@@ -72,5 +90,10 @@ exports.postCreateOrder = async (req, res) => {
 exports.getOrders = async (req, res) => {
   const orders = await req.user.getOrders();
 
-  res.render('shop/orders', { orders, title: 'Your Orders', path: '/orders' });
+  res.render('shop/orders', {
+    orders,
+    title: 'Your Orders',
+    path: '/orders',
+    isAuthenticated: !!req.session.userId
+  });
 }
