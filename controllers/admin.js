@@ -4,8 +4,7 @@ exports.getAddProduct = (req, res) => {
   res.render('admin/edit-product', {
     title: 'Add Product',
     path: '/admin/add-product',
-    product: null,
-    isAuthenticated: !!req.session.userId
+    product: null
   });
 };
 
@@ -39,8 +38,7 @@ exports.getEditProduct = async (req, res) => {
   res.render('admin/edit-product', {
     title: 'Edit Product',
     path: '/admin/edit-product',
-    product,
-    isAuthenticated: !!req.session.userId
+    product
   });
 };
 
@@ -64,8 +62,7 @@ exports.getProducts = async (req, res) => {
   res.render('admin/products', {
     products,
     title: 'Admin Products',
-    path: '/admin/products',
-    isAuthenticated: !!req.session.userId
+    path: '/admin/products'
   });
 }
 

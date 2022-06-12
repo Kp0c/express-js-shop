@@ -7,8 +7,7 @@ exports.getProducts = async (req, res) => {
     res.render('shop/product-list', {
       products,
       title: 'All Products',
-      path: '/products',
-      isAuthenticated: !!req.session.userId
+      path: '/products'
     });
   } catch(err) {
     console.error(err);
@@ -27,8 +26,7 @@ exports.getProduct = async (req, res) => {
   res.render('shop/product-detail', {
     product,
     title: product.title,
-    path: '/products',
-    isAuthenticated: !!req.session.userId
+    path: '/products'
   });
 };
 
@@ -39,8 +37,7 @@ exports.getIndex = async (req, res) => {
     res.render('shop/index', {
       products,
       title: 'Shop',
-      path: '/',
-      isAuthenticated: !!req.session.userId
+      path: '/'
     });
   } catch(err) {
     console.error(err);
@@ -53,8 +50,7 @@ exports.getCart = async (req, res) => {
   res.render('shop/cart', {
     cartProducts: items,
     title: 'Your Cart',
-    path: '/cart',
-    isAuthenticated: !!req.session.userId
+    path: '/cart'
   });
 }
 
@@ -93,7 +89,6 @@ exports.getOrders = async (req, res) => {
   res.render('shop/orders', {
     orders,
     title: 'Your Orders',
-    path: '/orders',
-    isAuthenticated: !!req.session.userId
+    path: '/orders'
   });
 }
