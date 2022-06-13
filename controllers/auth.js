@@ -1,4 +1,6 @@
 const bcrypt = require('bcryptjs');
+const emailSender = require("../util/email-sender");
+
 const User = require("../models/user");
 
 exports.getLogin = (req, res) => {
@@ -64,6 +66,11 @@ exports.postSignup = async (req, res) => {
   });
 
   await user.save();
+
+  await emailSender.sendEmail(user.email,
+    'Welcome to our store',
+    '<p>You have successfully signed up!</p>'
+  );
 
   req.session.userId = user._id;
   await req.session.save();

@@ -13,6 +13,7 @@ const authRoutes = require('./routes/auth');
 const errorController = require('./controllers/error');
 
 const User = require("./models/user");
+const emailSender = require("./util/email-sender");
 
 require('dotenv').config();
 
@@ -21,6 +22,7 @@ const store = new MongoDBStore({
   uri: process.env.MONGODB_URL,
   collection: 'sessions',
 },);
+emailSender.createTransporter();
 
 const csrfProtection = csrf();
 
