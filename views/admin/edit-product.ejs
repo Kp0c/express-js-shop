@@ -11,28 +11,53 @@
 <%- include('../includes/navigation.ejs') %>
 
 <main>
-    <form class="product-form" action="/admin/<%= product ? 'edit-product' : 'add-product' %>" method="POST">
+    <%- include('../includes/error-message.ejs') %>
+    <form class="product-form" action="/admin/<%= product?._id ? 'edit-product' : 'add-product' %>" method="POST">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <input type="hidden" name="productId" value="<%= product?._id %>">
 
         <div class="form-control">
             <label for="title">Title</label>
-            <input type="text" name="title" id="title" value="<%= product?.title %>">
+            <input
+                class="<%= validationErrors.find((error) => error === 'title') ? 'invalid' : '' %>"
+                type="text"
+                name="title"
+                id="title"
+                value="<%= product?.title %>"
+            >
         </div>
         <div class="form-control">
             <label for="imageUrl">Image Url</label>
-            <input type="text" name="imageUrl" id="imageUrl" value="<%= product?.imageUrl %>">
+            <input
+                class="<%= validationErrors.find((error) => error === 'imageUrl') ? 'invalid' : '' %>"
+                type="text"
+                name="imageUrl"
+                id="imageUrl"
+                value="<%= product?.imageUrl %>"
+            >
         </div>
         <div class="form-control">
-            <label for="description">Price</label>
-            <input type="number" name="price" id="price" step="0.01" value="<%= product?.price %>">
+            <label for="price">Price</label>
+            <input
+                class="<%= validationErrors.find((error) => error === 'price') ? 'invalid' : '' %>"
+                type="number"
+                name="price"
+                id="price"
+                step="0.01"
+                value="<%= product?.price %>"
+            >
         </div>
         <div class="form-control">
             <label for="description">Description</label>
-            <textarea name="description" id="description" rows="5"><%= product?.description %></textarea>
+            <textarea
+                class="<%= validationErrors.find((error) => error === 'description') ? 'invalid' : '' %>"
+                name="description"
+                id="description"
+                rows="5"
+            ><%= product?.description %></textarea>
         </div>
 
-        <button class="btn" type="submit"><%= product ? 'Update Product' : 'Add Product' %></button>
+        <button class="btn" type="submit"><%= product?._id ? 'Update Product' : 'Add Product' %></button>
     </form>
 </main>
 <%- include('../includes/scripts.ejs') %>

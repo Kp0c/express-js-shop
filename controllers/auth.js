@@ -1,36 +1,43 @@
 const bcrypt = require('bcryptjs');
 const emailSender = require("../util/email-sender");
 const crypto = require('crypto');
+const { validationResult } = require('express-validator');
 
 const User = require("../models/user");
 
 exports.getLogin = (req, res) => {
   const messages = req.flash('error');
-  const errorMessage = messages.join('<br>');
+  const errorMessage = messages.join('. ');
 
   res.render('auth/login', {
     title: 'Login',
     path: '/login',
-    errorMessage
+    errorMessage,
+    oldInput: null,
+    validationErrors: []
   });
 }
 
 exports.postLogin = async (req, res) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    const formattedErrors = errors.array().map(error => error.msg);
+    const errorMessage = formattedErrors.join('. ');
+
+    return res.status(422).render('auth/login', {
+      title: 'Login',
+      path: '/login',
+      errorMessage,
+      oldInput: {
+        email: req.body.email,
+        password: req.body.password
+      },
+      validationErrors: errors.array().map(error => error.param)
+    });
+  }
+
   const user = await User.findOne({ email: req.body.email });
-
-  if (!user) {
-    req.flash('error', 'Invalid email or password');
-    await req.session.save();
-    return res.redirect('/login');
-  }
-
-  const isPasswordValid = await bcrypt.compare(req.body.password, user.password);
-
-  if (!isPasswordValid) {
-    req.flash('error', 'Invalid email or password');
-    await req.session.save();
-    return res.redirect('/login');
-  }
 
   req.session.userId = user._id;
   await req.session.save();
@@ -40,22 +47,35 @@ exports.postLogin = async (req, res) => {
 
 exports.getSignup = (req, res) => {
   let messages = req.flash('error');
-  let errorMessage = messages.join('<br>');
+  let errorMessage = messages.join('. ');
 
   res.render('auth/signup', {
     title: 'signup',
     path: '/signup',
-    errorMessage
+    errorMessage,
+    oldInput: null,
+    validationErrors: []
   });
 }
 
 exports.postSignup = async (req, res) => {
-  const existingUser = await User.findOne({ email: req.body.email })
+  const errors = validationResult(req);
 
-  if (existingUser) {
-    req.flash('error', 'User already exists');
-    await req.session.save();
-    return res.redirect('/signup');
+  if (!errors.isEmpty()) {
+    const formattedErrors = errors.array().map(error => error.msg);
+    const errorMessage = formattedErrors.join('. ');
+
+    return res.status(422).render('auth/signup', {
+      title: 'signup',
+      path: '/signup',
+      errorMessage: errorMessage,
+      oldInput: {
+        email: req.body.email,
+        password: req.body.password,
+        confirmPassword: req.body.confirmPassword
+      },
+      validationErrors: errors.array().map(error => error.param)
+    });
   }
 
   const hashedPassword = await bcrypt.hash(req.body.password, 12)
@@ -87,7 +107,7 @@ exports.postLogout = async (req, res) => {
 
 exports.getReset = (req, res) => {
   const messages = req.flash('error');
-  const errorMessage = messages.join('<br>');
+  const errorMessage = messages.join('. ');
 
   res.render('auth/reset', {
     title: 'Reset Password',
@@ -124,7 +144,7 @@ exports.postReset = async (req, res) => {
 
 exports.getNewPassword = async (req, res) => {
   const errors = req.flash('error');
-  const errorMessage = errors.join('<br>');
+  const errorMessage = errors.join('. ');
 
   res.render('auth/new-password', {
     title: 'New Password',

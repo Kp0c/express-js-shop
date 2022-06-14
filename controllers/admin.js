@@ -1,14 +1,37 @@
 const Product = require('../models/product');
+const {validationResult} = require("express-validator");
 
 exports.getAddProduct = (req, res) => {
   res.render('admin/edit-product', {
     title: 'Add Product',
     path: '/admin/add-product',
-    product: null
+    product: null,
+    errorMessage: null,
+    validationErrors: []
   });
 };
 
 exports.postAddProduct = async (req, res) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    const formattedErrors = errors.array().map(error => error.msg);
+    const errorMessage = formattedErrors.join('. ');
+
+    return res.status(422).render('admin/edit-product', {
+      title: 'Add Product',
+      path: '/admin/add-product',
+      product: {
+        title: req.body.title,
+        imageUrl: req.body.imageUrl,
+        description: req.body.description,
+        price: req.body.price
+      },
+      errorMessage,
+      validationErrors: errors.array().map(error => error.param)
+    });
+  }
+
   try {
     const product = new Product({
       title: req.body.title,
@@ -38,11 +61,34 @@ exports.getEditProduct = async (req, res) => {
   res.render('admin/edit-product', {
     title: 'Edit Product',
     path: '/admin/edit-product',
-    product
+    product,
+    errorMessage: null,
+    validationErrors: []
   });
 };
 
 exports.postEditProduct = async (req, res) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    const formattedErrors = errors.array().map(error => error.msg);
+    const errorMessage = formattedErrors.join('. ');
+
+    return res.status(422).render('admin/edit-product', {
+      title: 'Edit Product',
+      path: '/admin/edit-product',
+      product: {
+        _id: req.body.productId,
+        title: req.body.title,
+        imageUrl: req.body.imageUrl,
+        description: req.body.description,
+        price: req.body.price
+      },
+      errorMessage,
+      validationErrors: errors.array().map(error => error.param)
+    });
+  }
+
   const productId = req.body['productId'];
 
   const product = await Product.findById(productId);
