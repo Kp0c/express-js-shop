@@ -18,9 +18,7 @@ const productValidators = [
     .isNumeric(),
   body('description', 'Please enter a description')
     .isLength({min: 5, max: 4000})
-    .trim(),
-  body('imageUrl', 'Please enter an image URL')
-    .isURL()
+    .trim()
 ];
 router.post('/add-product',
   productValidators,

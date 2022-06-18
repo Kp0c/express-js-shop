@@ -12,7 +12,12 @@
 
 <main>
     <%- include('../includes/error-message.ejs') %>
-    <form class="product-form" action="/admin/<%= product?._id ? 'edit-product' : 'add-product' %>" method="POST">
+    <form
+        class="product-form"
+        action="/admin/<%= product?._id ? 'edit-product' : 'add-product' %>"
+        method="POST"
+        enctype="multipart/form-data"
+    >
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <input type="hidden" name="productId" value="<%= product?._id %>">
 
@@ -27,13 +32,11 @@
             >
         </div>
         <div class="form-control">
-            <label for="imageUrl">Image Url</label>
+            <label for="imageUrl">Image</label>
             <input
-                class="<%= validationErrors.find((error) => error === 'imageUrl') ? 'invalid' : '' %>"
-                type="text"
-                name="imageUrl"
-                id="imageUrl"
-                value="<%= product?.imageUrl %>"
+                type="file"
+                name="image"
+                id="image"
             >
         </div>
         <div class="form-control">
