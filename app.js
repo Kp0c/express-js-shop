@@ -39,13 +39,6 @@ app.use(session({
 app.use(csrfProtection);
 app.use(flash());
 
-app.use(async (req, res, next) => {
-  if (req.session.userId) {
-    req.user = await User.findById(req.session.userId);
-  }
-  next();
-});
-
 app.use((req, res, next) => {
   res.locals = {
     isAuthenticated: !!req.session.userId,
@@ -55,11 +48,34 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(async (req, res, next) => {
+  if (req.session.userId) {
+    try {
+      const user = await User.findById(req.session.userId);
+      if (user) {
+        req.user = user;
+      }
+    } catch (err) {
+      return next(err);
+    }
+  }
+  next();
+});
+
 app.use('/admin', adminRoutes);
 app.use(authRoutes);
 app.use(shopRoutes);
 
 app.use(errorController.notFoundController);
+
+app.use((error, req, res, _) => {
+  console.error(error);
+
+  res.status(500).render('500', {
+    title: 'Error occurred',
+    path: null
+  });
+});
 
 (async () => {
   await mongoose.connect(process.env.MONGODB_URL);

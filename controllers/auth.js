@@ -18,7 +18,7 @@ exports.getLogin = (req, res) => {
   });
 }
 
-exports.postLogin = async (req, res) => {
+exports.postLogin = async (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -37,12 +37,16 @@ exports.postLogin = async (req, res) => {
     });
   }
 
-  const user = await User.findOne({ email: req.body.email });
+  try {
+    const user = await User.findOne({ email: req.body.email });
 
-  req.session.userId = user._id;
-  await req.session.save();
+    req.session.userId = user._id;
+    await req.session.save();
 
-  res.redirect('/');
+    res.redirect('/');
+  } catch (err) {
+    return next(err);
+  }
 }
 
 exports.getSignup = (req, res) => {
@@ -58,7 +62,7 @@ exports.getSignup = (req, res) => {
   });
 }
 
-exports.postSignup = async (req, res) => {
+exports.postSignup = async (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -78,31 +82,39 @@ exports.postSignup = async (req, res) => {
     });
   }
 
-  const hashedPassword = await bcrypt.hash(req.body.password, 12)
+  try {
+    const hashedPassword = await bcrypt.hash(req.body.password, 12)
 
-  const user = new User({
-    email: req.body.email,
-    password: hashedPassword,
-    cart: { items: [] }
-  });
+    const user = new User({
+      email: req.body.email,
+      password: hashedPassword,
+      cart: { items: [] }
+    });
 
-  await user.save();
+    await user.save();
 
-  await emailSender.sendEmail(user.email,
-    'Welcome to our store',
-    '<p>You have successfully signed up!</p>'
-  );
+    await emailSender.sendEmail(user.email,
+      'Welcome to our store',
+      '<p>You have successfully signed up!</p>'
+    );
 
-  req.session.userId = user._id;
-  await req.session.save();
+    req.session.userId = user._id;
+    await req.session.save();
 
-  res.redirect('/');
+    res.redirect('/');
+  } catch (err) {
+    return next(err);
+  }
 }
 
-exports.postLogout = async (req, res) => {
-  await req.session.destroy();
+exports.postLogout = async (req, res, next) => {
+  try {
+    await req.session.destroy();
 
-  res.redirect('/');
+    res.redirect('/');
+  } catch (err) {
+    return next(err);
+  }
 }
 
 exports.getReset = (req, res) => {
@@ -116,30 +128,34 @@ exports.getReset = (req, res) => {
   });
 }
 
-exports.postReset = async (req, res) => {
-  const user = await User.findOne({ email: req.body.email });
+exports.postReset = async (req, res, next) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
 
-  if (!user) {
-    req.flash('error', 'User not found');
-    await req.session.save();
-    res.redirect('/reset');
-    return;
-  }
+    if (!user) {
+      req.flash('error', 'User not found');
+      await req.session.save();
+      res.redirect('/reset');
+      return;
+    }
 
-  user.resetToken = crypto.randomBytes(32).toString('hex');
-  user.resetTokenExpiration = Date.now() + 3_600_000; // 1 hour from now
+    user.resetToken = crypto.randomBytes(32).toString('hex');
+    user.resetTokenExpiration = Date.now() + 3_600_000; // 1 hour from now
 
-  await user.save();
+    await user.save();
 
-  await emailSender.sendEmail(
-    user.email,
-    'Reset your password',
-    `<p>You have requested a password reset. Click the link below to reset your password:</p>
+    await emailSender.sendEmail(
+      user.email,
+      'Reset your password',
+      `<p>You have requested a password reset. Click the link below to reset your password:</p>
     <a href="${req.headers.origin}/reset/${user.resetToken}">Reset Password</a>
     <p>This link will expire in 1 hour.</p>`
-  );
+    );
 
-  res.redirect('/login');
+    res.redirect('/login');
+  } catch (err) {
+    return next(err);
+  }
 }
 
 exports.getNewPassword = async (req, res) => {
@@ -154,32 +170,36 @@ exports.getNewPassword = async (req, res) => {
   });
 }
 
-exports.postNewPassword = async (req, res) => {
-  const user = await User.findOne({
-    resetToken: req.body.token,
-    resetTokenExpiration: {$gt: Date.now()}
-  });
+exports.postNewPassword = async (req, res, next) => {
+  try {
+    const user = await User.findOne({
+      resetToken: req.body.token,
+      resetTokenExpiration: {$gt: Date.now()}
+    });
 
-  if (!user) {
-    req.flash('error', 'Invalid token');
+    if (!user) {
+      req.flash('error', 'Invalid token');
+      await req.session.save();
+      res.redirect('/reset');
+      return;
+    }
+
+    if (req.body.password !== req.body.confirmPassword) {
+      req.flash('error', 'Passwords do not match');
+      await req.session.save();
+    }
+
+    user.password = await bcrypt.hash(req.body.password, 12);
+    user.resetToken = undefined;
+    user.resetTokenExpiration = undefined;
+
+    await user.save();
+
+    req.session.userId = user._id;
     await req.session.save();
-    res.redirect('/reset');
-    return;
+
+    res.redirect('/');
+  } catch (err) {
+    return next(err);
   }
-
-  if (req.body.password !== req.body.confirmPassword) {
-    req.flash('error', 'Passwords do not match');
-    await req.session.save();
-  }
-
-  user.password = await bcrypt.hash(req.body.password, 12);
-  user.resetToken = undefined;
-  user.resetTokenExpiration = undefined;
-
-  await user.save();
-
-  req.session.userId = user._id;
-  await req.session.save();
-
-  res.redirect('/');
 }
