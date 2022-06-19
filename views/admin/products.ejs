@@ -13,7 +13,7 @@
     <% if(products.length > 0) { %>
         <div class="grid">
             <% for(let product of products) { %>
-                <article class="card product-item">
+                <article class="card product-item" id="product-card-<%= product._id %>">
                     <header class="card__header">
                         <h1 class="product__title"><%= product.title %></h1>
                     </header>
@@ -26,11 +26,9 @@
                     </div>
                     <div class="card__actions">
                         <a href="/admin/edit-product/<%= product._id %>" class="btn">Edit</a>
-                        <form action="/admin/delete-product" method="POST">
-                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                            <input type="hidden" name="productId" value="<%= product._id %>">
-                            <button class="btn" type="submit">Delete</button>
-                        </form>
+                        <input type="hidden" id="csrfToken" name="_csrf" value="<%= csrfToken %>">
+                        <input type="hidden" id="productId" name="productId" value="<%= product._id %>">
+                        <button class="btn" type="button" onclick="deleteProduct(this)">Delete</button>
                     </div>
                 </article>
             <% } %>
@@ -40,6 +38,7 @@
     <% } %>
 </main>
 <%- include('../includes/scripts.ejs') %>
+<script src="/js/admin.js"></script>
 </body>
 
 </html>
