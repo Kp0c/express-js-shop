@@ -4,6 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const PDFDocument = require("pdfkit");
 
+require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 const ITEMS_PER_PAGE = 4;
 
 exports.getProducts = async (req, res, next) => {
@@ -115,16 +118,6 @@ exports.postCartDeleteProduct = async (req, res, next) => {
   }
 }
 
-exports.postCreateOrder = async (req, res, next) => {
-  try {
-    await req.user.addOrder();
-
-    res.redirect('/orders');
-  } catch(err) {
-    return next(err);
-  }
-}
-
 exports.getOrders = async (req, res, next) => {
   try {
     const orders = await req.user.getOrders();
@@ -181,6 +174,49 @@ exports.getInvoice = async (req, res, next) => {
     pdfDoc.text(`Total: $${totalSum}`);
 
     pdfDoc.end();
+  } catch (err) {
+    return next(err);
+  }
+}
+
+exports.getCheckout = async (req, res, next) => {
+  try {
+    const items = await req.user.getCartItems();
+
+    const totalSum = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: items.map(item => ({
+        name: item.title,
+        description: item.description,
+        amount: item.price * 100,
+        currency: 'usd',
+        quantity: item.quantity
+      })),
+      success_url: req.protocol + '://' + req.get('host') + '/checkout/success',
+      cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel'
+    });
+
+    res.render('shop/checkout', {
+      title: 'Checkout',
+      path: '/checkout',
+      items,
+      totalSum,
+      sessionId: session.id
+    });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+// Note: we cannot rely on this because user can call it via browser without paying
+// We need to use webhooks to make sure that user paid. See https://stripe.com/docs/payments/checkout/fulfill-orders
+exports.getCheckoutSuccess = async (req, res, next) => {
+  try {
+    await req.user.addOrder();
+
+    res.redirect('/orders');
   } catch (err) {
     return next(err);
   }
