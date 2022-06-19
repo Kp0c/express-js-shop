@@ -4,14 +4,24 @@ const fs = require('fs');
 const path = require('path');
 const PDFDocument = require("pdfkit");
 
+const ITEMS_PER_PAGE = 4;
+
 exports.getProducts = async (req, res, next) => {
   try {
-    const products = await Product.find();
+    const page = Number(req.query.page || 1);
+
+    const products = await Product.find()
+      .skip((page - 1) * ITEMS_PER_PAGE)
+      .limit(ITEMS_PER_PAGE);
+
+    const totalItems = await Product.countDocuments();
 
     res.render('shop/product-list', {
       products,
       title: 'All Products',
-      path: '/products'
+      path: '/products',
+      pages: Math.ceil(totalItems / ITEMS_PER_PAGE),
+      currentPage: page
     });
   } catch(err) {
     return next(err);
@@ -40,12 +50,20 @@ exports.getProduct = async (req, res, next) => {
 
 exports.getIndex = async (req, res, next) => {
   try {
-    const products = await Product.find();
+    const page = Number(req.query.page || 1);
+
+    const products = await Product.find()
+      .skip((page - 1) * ITEMS_PER_PAGE)
+      .limit(ITEMS_PER_PAGE);
+
+    const totalItems = await Product.countDocuments();
 
     res.render('shop/index', {
       products,
       title: 'Shop',
-      path: '/'
+      path: '/',
+      pages: Math.ceil(totalItems / ITEMS_PER_PAGE),
+      currentPage: page
     });
   } catch(err) {
     return next(err);
