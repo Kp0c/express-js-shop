@@ -203,7 +203,8 @@ exports.getCheckout = async (req, res, next) => {
       path: '/checkout',
       items,
       totalSum,
-      sessionId: session.id
+      sessionId: session.id,
+      stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY
     });
   } catch (err) {
     return next(err);
