@@ -7,6 +7,7 @@ const MongoDBStore = require('connect-mongodb-session')(session);
 const csrf = require('csurf');
 const flash = require('connect-flash');
 const multer = require('multer');
+const fs = require('fs');
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
@@ -15,10 +16,14 @@ const errorController = require('./controllers/error');
 
 const User = require("./models/user");
 const emailSender = require("./util/email-sender");
+const helmet = require("helmet");
+const compression = require("compression");
+const morgan = require("morgan");
 
 require('dotenv').config();
 
 const app = express();
+
 const store = new MongoDBStore({
   uri: process.env.MONGODB_URL,
   collection: 'sessions',
@@ -48,7 +53,13 @@ const fileFilter = (req, file, cb) => {
   }
 }
 
+const accessLogStream = fs.createWriteStream(path.join(__dirname, 'logs', 'access.log'), { flags: 'a' });
+
 app.set('view engine', 'ejs');
+
+app.use(helmet());
+app.use(compression());
+app.use(morgan('combined', { stream: accessLogStream }));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(multer({ storage: fileStorage, fileFilter }).single('image'));
@@ -104,5 +115,5 @@ app.use((error, req, res, _) => {
 (async () => {
   await mongoose.connect(process.env.MONGODB_URL);
 
-  app.listen(3000);
+  app.listen(process.env.PORT || 3000);
 })();
