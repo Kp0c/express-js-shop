@@ -53,7 +53,7 @@ const fileFilter = (req, file, cb) => {
   }
 }
 
-const accessLogStream = fs.createWriteStream(path.join(__dirname, 'logs', 'access.log'), { flags: 'a' });
+const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
 
 app.set('view engine', 'ejs');
 
